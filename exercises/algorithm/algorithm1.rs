@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +68,44 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+}
+
+impl<T: Ord> LinkedList<T> {
+    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
+        let mut merged_list = LinkedList::new();
+
+        while let (Some(a), Some(b)) = (list_a.start, list_b.start) {
+            unsafe {
+                if a.as_ref().val <= b.as_ref().val {
+                    merged_list.add(list_a.remove_first().unwrap());
+                } else {
+                    merged_list.add(list_b.remove_first().unwrap());
+                }
+            }
         }
-	}
+
+        while let Some(_) = list_a.start {
+            merged_list.add(list_a.remove_first().unwrap());
+        }
+
+        while let Some(_) = list_b.start {
+            merged_list.add(list_b.remove_first().unwrap());
+        }
+
+        merged_list
+    }
+
+    fn remove_first(&mut self) -> Option<T> {
+        self.start.map(|node| unsafe {
+            let boxed_node = Box::from_raw(node.as_ptr());
+            self.start = boxed_node.next;
+            if self.start.is_none() {
+                self.end = None;
+            }
+            self.length -= 1;
+            boxed_node.val
+        })
+    }
 }
 
 impl<T> Display for LinkedList<T>
